@@ -3021,15 +3021,25 @@ DefaultValueExpr:
 NowSymOptionFraction:
 	NowSym
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr("CURRENT_TIMESTAMP")}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr("CURRENT_TIMESTAMP"),
+		}
 	}
 |	NowSymFunc '(' ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr("CURRENT_TIMESTAMP")}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr("CURRENT_TIMESTAMP"),
+		}
 	}
 |	NowSymFunc '(' NUM ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr("CURRENT_TIMESTAMP"), Args: []ast.ExprNode{ast.NewValueExpr($3, parser.charset, parser.collation)}}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr("CURRENT_TIMESTAMP"),
+			Args:   []ast.ExprNode{ast.NewValueExpr($3, parser.charset, parser.collation)},
+		}
 	}
 
 NextValueForSequence:
@@ -5761,6 +5771,7 @@ BitExpr:
 |	BitExpr '+' "INTERVAL" Expression TimeUnit %prec '+'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr("DATE_ADD"),
 			Args: []ast.ExprNode{
 				$1,
@@ -5772,6 +5783,7 @@ BitExpr:
 |	BitExpr '-' "INTERVAL" Expression TimeUnit %prec '+'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr("DATE_SUB"),
 			Args: []ast.ExprNode{
 				$1,
@@ -5871,7 +5883,11 @@ SimpleExpr:
 	}
 |	SimpleExpr pipes SimpleExpr
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.Concat), Args: []ast.ExprNode{$1, $3}}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr(ast.Concat),
+			Args:   []ast.ExprNode{$1, $3},
+		}
 	}
 |	not2 SimpleExpr %prec neg
 	{
@@ -5964,6 +5980,7 @@ SimpleExpr:
 		// See https://dev.mysql.com/doc/refman/5.7/en/cast-functions.html#function_convert
 		charset1 := ast.NewValueExpr($5, parser.charset, parser.collation)
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, charset1},
 		}
@@ -5979,12 +5996,20 @@ SimpleExpr:
 |	SimpleIdent jss stringLit
 	{
 		expr := ast.NewValueExpr($3, parser.charset, parser.collation)
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.JSONExtract), Args: []ast.ExprNode{$1, expr}}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr(ast.JSONExtract),
+			Args:   []ast.ExprNode{$1, expr},
+		}
 	}
 |	SimpleIdent juss stringLit
 	{
 		expr := ast.NewValueExpr($3, parser.charset, parser.collation)
-		extract := &ast.FuncCallExpr{FnName: model.NewCIStr(ast.JSONExtract), Args: []ast.ExprNode{$1, expr}}
+		extract := &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr(ast.JSONExtract),
+			Args:   []ast.ExprNode{$1, expr},
+		}
 		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.JSONUnquote), Args: []ast.ExprNode{extract}}
 	}
 
@@ -6074,19 +6099,33 @@ FunctionNameDatetimePrecision:
 FunctionCallKeyword:
 	FunctionNameConflict '(' ExpressionListOpt ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($1),
+			Args:   $3.([]ast.ExprNode),
+		}
 	}
 |	builtinUser '(' ExpressionListOpt ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($1),
+			Args:   $3.([]ast.ExprNode),
+		}
 	}
 |	FunctionNameOptionalBraces OptionalBraces
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1)}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($1),
+		}
 	}
 |	builtinCurDate '(' ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1)}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($1),
+		}
 	}
 |	FunctionNameDatetimePrecision FuncDatetimePrec
 	{
@@ -6094,13 +6133,18 @@ FunctionCallKeyword:
 		if $2 != nil {
 			args = append(args, $2.(ast.ExprNode))
 		}
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: args}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($1),
+			Args:   args,
+		}
 	}
 |	"CHAR" '(' ExpressionList ')'
 	{
 		nilVal := ast.NewValueExpr(nil, parser.charset, parser.collation)
 		args := $3.([]ast.ExprNode)
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr(ast.CharFunc),
 			Args:   append(args, nilVal),
 		}
@@ -6110,6 +6154,7 @@ FunctionCallKeyword:
 		charset1 := ast.NewValueExpr($5, parser.charset, parser.collation)
 		args := $3.([]ast.ExprNode)
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr(ast.CharFunc),
 			Args:   append(args, charset1),
 		}
@@ -6117,21 +6162,37 @@ FunctionCallKeyword:
 |	"DATE" stringLit
 	{
 		expr := ast.NewValueExpr($2, parser.charset, parser.collation)
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.DateLiteral), Args: []ast.ExprNode{expr}}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr(ast.DateLiteral),
+			Args:   []ast.ExprNode{expr},
+		}
 	}
 |	"TIME" stringLit
 	{
 		expr := ast.NewValueExpr($2, parser.charset, parser.collation)
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.TimeLiteral), Args: []ast.ExprNode{expr}}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr(ast.TimeLiteral),
+			Args:   []ast.ExprNode{expr},
+		}
 	}
 |	"TIMESTAMP" stringLit
 	{
 		expr := ast.NewValueExpr($2, parser.charset, parser.collation)
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.TimestampLiteral), Args: []ast.ExprNode{expr}}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr(ast.TimestampLiteral),
+			Args:   []ast.ExprNode{expr},
+		}
 	}
 |	"INSERT" '(' ExpressionListOpt ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.InsertFunc), Args: $3.([]ast.ExprNode)}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr(ast.InsertFunc),
+			Args:   $3.([]ast.ExprNode),
+		}
 	}
 |	"MOD" '(' BitExpr ',' BitExpr ')'
 	{
@@ -6139,28 +6200,45 @@ FunctionCallKeyword:
 	}
 |	"PASSWORD" '(' ExpressionListOpt ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr(ast.PasswordFunc), Args: $3.([]ast.ExprNode)}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr(ast.PasswordFunc),
+			Args:   $3.([]ast.ExprNode),
+		}
 	}
 |	'{' ODBCDateTimeType stringLit '}'
 	{
 		// This is ODBC syntax for date and time literals.
 		// See: https://dev.mysql.com/doc/refman/5.7/en/date-and-time-literals.html
 		expr := ast.NewValueExpr($3, parser.charset, parser.collation)
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($2), Args: []ast.ExprNode{expr}}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($2),
+			Args:   []ast.ExprNode{expr},
+		}
 	}
 
 FunctionCallNonKeyword:
 	builtinCurTime '(' FuncDatetimePrecListOpt ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($1),
+			Args:   $3.([]ast.ExprNode),
+		}
 	}
 |	builtinSysDate '(' FuncDatetimePrecListOpt ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: $3.([]ast.ExprNode)}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($1),
+			Args:   $3.([]ast.ExprNode),
+		}
 	}
 |	FunctionNameDateArithMultiForms '(' Expression ',' Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args: []ast.ExprNode{
 				$3,
@@ -6172,6 +6250,7 @@ FunctionCallNonKeyword:
 |	FunctionNameDateArithMultiForms '(' Expression ',' "INTERVAL" Expression TimeUnit ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args: []ast.ExprNode{
 				$3,
@@ -6183,6 +6262,7 @@ FunctionCallNonKeyword:
 |	FunctionNameDateArith '(' Expression ',' "INTERVAL" Expression TimeUnit ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args: []ast.ExprNode{
 				$3,
@@ -6195,6 +6275,7 @@ FunctionCallNonKeyword:
 	{
 		timeUnit := &ast.TimeUnitExpr{Unit: $3.(ast.TimeUnitType)}
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{timeUnit, $5},
 		}
@@ -6202,6 +6283,7 @@ FunctionCallNonKeyword:
 |	"GET_FORMAT" '(' GetFormatSelector ',' Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args: []ast.ExprNode{
 				&ast.GetFormatSelectorExpr{Selector: $3.(ast.GetFormatSelectorType)},
@@ -6211,11 +6293,16 @@ FunctionCallNonKeyword:
 	}
 |	builtinPosition '(' BitExpr "IN" Expression ')'
 	{
-		$$ = &ast.FuncCallExpr{FnName: model.NewCIStr($1), Args: []ast.ExprNode{$3, $5}}
+		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
+			FnName: model.NewCIStr($1),
+			Args:   []ast.ExprNode{$3, $5},
+		}
 	}
 |	builtinSubstring '(' Expression ',' Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5},
 		}
@@ -6223,6 +6310,7 @@ FunctionCallNonKeyword:
 |	builtinSubstring '(' Expression "FROM" Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5},
 		}
@@ -6230,6 +6318,7 @@ FunctionCallNonKeyword:
 |	builtinSubstring '(' Expression ',' Expression ',' Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5, $7},
 		}
@@ -6237,6 +6326,7 @@ FunctionCallNonKeyword:
 |	builtinSubstring '(' Expression "FROM" Expression "FOR" Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, $5, $7},
 		}
@@ -6244,6 +6334,7 @@ FunctionCallNonKeyword:
 |	"TIMESTAMPADD" '(' TimestampUnit ',' Expression ',' Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{&ast.TimeUnitExpr{Unit: $3.(ast.TimeUnitType)}, $5, $7},
 		}
@@ -6251,6 +6342,7 @@ FunctionCallNonKeyword:
 |	"TIMESTAMPDIFF" '(' TimestampUnit ',' Expression ',' Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{&ast.TimeUnitExpr{Unit: $3.(ast.TimeUnitType)}, $5, $7},
 		}
@@ -6258,6 +6350,7 @@ FunctionCallNonKeyword:
 |	builtinTrim '(' Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3},
 		}
@@ -6265,6 +6358,7 @@ FunctionCallNonKeyword:
 |	builtinTrim '(' Expression "FROM" Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$5, $3},
 		}
@@ -6274,6 +6368,7 @@ FunctionCallNonKeyword:
 		nilVal := ast.NewValueExpr(nil, parser.charset, parser.collation)
 		direction := &ast.TrimDirectionExpr{Direction: $3.(ast.TrimDirectionType)}
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$5, nilVal, direction},
 		}
@@ -6282,6 +6377,7 @@ FunctionCallNonKeyword:
 	{
 		direction := &ast.TrimDirectionExpr{Direction: $3.(ast.TrimDirectionType)}
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$6, $4, direction},
 		}
@@ -6289,6 +6385,7 @@ FunctionCallNonKeyword:
 |	weightString '(' Expression ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3},
 		}
@@ -6296,6 +6393,7 @@ FunctionCallNonKeyword:
 |	weightString '(' Expression "AS" Char FieldLen ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, ast.NewValueExpr("CHAR", parser.charset, parser.collation), ast.NewValueExpr($6, parser.charset, parser.collation)},
 		}
@@ -6303,6 +6401,7 @@ FunctionCallNonKeyword:
 |	weightString '(' Expression "AS" "BINARY" FieldLen ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   []ast.ExprNode{$3, ast.NewValueExpr("BINARY", parser.charset, parser.collation), ast.NewValueExpr($6, parser.charset, parser.collation)},
 		}
@@ -6356,6 +6455,7 @@ FunctionNameSequence:
 			Name: $3.(*ast.TableName),
 		}
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr(ast.LastVal),
 			Args:   []ast.ExprNode{objNameExpr},
 		}
@@ -6367,6 +6467,7 @@ FunctionNameSequence:
 		}
 		valueExpr := ast.NewValueExpr($5, parser.charset, parser.collation)
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr(ast.SetVal),
 			Args:   []ast.ExprNode{objNameExpr, valueExpr},
 		}
@@ -6575,6 +6676,7 @@ FunctionCallGeneric:
 	identifier '(' ExpressionListOpt ')'
 	{
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			FnName: model.NewCIStr($1),
 			Args:   $3.([]ast.ExprNode),
 		}
@@ -6588,6 +6690,7 @@ FunctionCallGeneric:
 			tp = ast.FuncCallExprTypeGeneric
 		}
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			Tp:     tp,
 			Schema: model.NewCIStr($1),
 			FnName: model.NewCIStr($3),
