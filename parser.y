@@ -6581,7 +6581,7 @@ FunctionCallGeneric:
 	}
 |	Identifier '.' Identifier '(' ExpressionListOpt ')'
 	{
-		offset := parser.startOffset(&yyS[yypt])
+		offset := parser.startOffset(&yyS[yypt-3])
 		var tp ast.FuncCallExprType
 		if isInTokenMap($3) {
 			tp = ast.FuncCallExprTypeKeyword
