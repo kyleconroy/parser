@@ -6588,6 +6588,7 @@ FunctionCallGeneric:
 			tp = ast.FuncCallExprTypeGeneric
 		}
 		$$ = &ast.FuncCallExpr{
+			Offset: parser.startOffset(&yyS[yypt]),
 			Tp:     tp,
 			Schema: model.NewCIStr($1),
 			FnName: model.NewCIStr($3),
