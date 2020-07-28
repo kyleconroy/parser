@@ -6598,6 +6598,7 @@ FunctionCallGeneric:
 	}
 |	Identifier '.' Identifier '(' ExpressionListOpt ')'
 	{
+		offset := parser.startOffset(&yyS[yypt-5])
 		var tp ast.FuncCallExprType
 		if isInTokenMap($3) {
 			tp = ast.FuncCallExprTypeKeyword
@@ -6605,6 +6606,7 @@ FunctionCallGeneric:
 			tp = ast.FuncCallExprTypeGeneric
 		}
 		$$ = &ast.FuncCallExpr{
+			Offset: offset,
 			Tp:     tp,
 			Schema: model.NewCIStr($1),
 			FnName: model.NewCIStr($3),
